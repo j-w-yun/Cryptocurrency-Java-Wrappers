@@ -35,7 +35,12 @@ public class CustomNameValuePair<S,T> {
 
 	@Override
 	public String toString() {
-		return name + ":" + value;
+
+		if(value != null)
+			return name + ":" + value;
+		else
+			return name.toString();
+
 	}
 
 }

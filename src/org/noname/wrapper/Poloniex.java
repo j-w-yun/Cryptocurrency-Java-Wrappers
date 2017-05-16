@@ -42,7 +42,7 @@ public class Poloniex {
 		/**
 		 * Returns the ticker for all markets
 		 */
-		public static void ticker() {
+		public static TickerData[] ticker() {
 
 			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnTicker");
 			String response = null;
@@ -54,14 +54,32 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			evaluateExpression(response);
+			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
+			ArrayList<TickerData> b = new ArrayList<>();
 
+			for(int j = 0; j < a.size(); j++) {
+				TickerData tickerData = new TickerData(
+						a.get(j++).getName(),
+						Integer.parseInt(a.get(j++).getValue().toString()),
+						Double.parseDouble(a.get(j++).getValue().toString()),
+						Double.parseDouble(a.get(j++).getValue().toString()),
+						Double.parseDouble(a.get(j++).getValue().toString()),
+						Double.parseDouble(a.get(j++).getValue().toString()),
+						Double.parseDouble(a.get(j++).getValue().toString()),
+						Double.parseDouble(a.get(j++).getValue().toString()),
+						Boolean.parseBoolean(a.get(j++).getValue().toString()),
+						Double.parseDouble(a.get(j++).getValue().toString()),
+						Double.parseDouble(a.get(j).getValue().toString()));
+				b.add(tickerData);
+			}
+
+			return b.toArray(new TickerData[b.size()]);
 		}
 
 		/**
 		 * Returns the 24-hour volume for all markets, plus totals for primary currencies
 		 */
-		public static void volume() {
+		public static VolumeData[] volume() {
 
 			HttpGet get = new HttpGet(PUBLIC_URL + "?command=return24hVolume");
 			String response = null;
@@ -73,7 +91,20 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			evaluateExpression(response);
+			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
+			ArrayList<VolumeData> b = new ArrayList<>();
+
+			for(int j = 0; j < a.size(); j++) {
+				VolumeData volumeData = new VolumeData(
+						a.get(j++).getName(),
+						a.get(j++).getName(),
+						Double.parseDouble(a.get(j++).getValue().toString()),
+						a.get(j++).getName(),
+						Double.parseDouble(a.get(j++).getValue().toString()));
+				b.add(volumeData);
+			}
+
+			return b.toArray(new VolumeData[b.size()]);
 
 		}
 
@@ -81,7 +112,7 @@ public class Poloniex {
 		 * Returns the order book for a given market, as well as a sequence number for use with the Push API and an indicator specifying whether the market is frozen
 		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
 		 */
-		public static void orderBook(String currencyPair) {
+		public static OrderBookData orderBook(String currencyPair) {
 
 			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnOrderBook&currencyPair=" + currencyPair);
 			String response = null;
@@ -93,28 +124,105 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			evaluateExpression(response);
+			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
 
-		}
+			ArrayList<OrderBookData.Order> asks = new ArrayList<>();
+			ArrayList<OrderBookData.Order> bids = new ArrayList<>();
+			boolean isFrozen = false;
+			long seq = 0;
 
-		/**
-		 * Returns the order book for all markets, as well as a sequence number for use with the Push API and an indicator specifying whether the market is frozen
-		 */
-		public static void orderBookAll() {
+			boolean asksDoneParsing = false;
+			for(CustomNameValuePair<String, CustomNameValuePair> each : a) {
 
-			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnOrderBook&currencyPair=all");
-			String response = null;
+				if(each.getName().equals("asks"))
+					asksDoneParsing = false;
+				else if(each.getName().equals("bids"))
+					asksDoneParsing = true;
+				else if(each.getName().equals("isFrozen"))
+					isFrozen = Boolean.parseBoolean(each.getValue().toString());
+				else if(each.getName().equals("seq"))
+					seq = Long.parseLong(each.getValue().toString());
+				else {
+					OrderBookData.Order order = new OrderBookData.Order(
+							Double.parseDouble(each.getName().toString()),
+							Double.parseDouble(each.getValue().toString()));
+					if(!asksDoneParsing)
+						asks.add(order);
+					else
+						bids.add(order);
+				}
 
-			try {
-				CloseableHttpResponse httpResponse = httpClient.execute(get);
-				response = EntityUtils.toString(httpResponse.getEntity());
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 
-			evaluateExpression(response);
+			return new OrderBookData(null, asks, bids, isFrozen, seq);
 
 		}
+
+		//		/**
+		//		 * Returns the order book for all markets, as well as a sequence number for use with the Push API and an indicator specifying whether the market is frozen
+		//		 */
+		//		public static OrderBookData[] orderBookAll() {
+		//
+		//			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnOrderBook&currencyPair=all");
+		//			String response = null;
+		//
+		//			try {
+		//				CloseableHttpResponse httpResponse = httpClient.execute(get);
+		//				response = EntityUtils.toString(httpResponse.getEntity());
+		//			} catch (IOException e) {
+		//				e.printStackTrace();
+		//			}
+		//
+		//			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
+		//
+		//			ArrayList<OrderBookData> orderBookDatas = new ArrayList<>();
+		//
+		//			ArrayList<OrderBookData.Order> asks = new ArrayList<>();
+		//			ArrayList<OrderBookData.Order> bids = new ArrayList<>();
+		//			boolean isFrozen = false;
+		//			long seq = 0;
+		//
+		//			String currencyPair = null;
+		//			boolean currencyPairStringRead = false;
+		//			boolean currencyPairComplete = false;
+		//
+		//			boolean asksDoneParsing = false;
+		//			for(CustomNameValuePair<String, CustomNameValuePair> each : a) {
+		//
+		//				if(currencyPairComplete) {
+		//					orderBookDatas.add(new OrderBookData(currencyPair, asks, bids, isFrozen, seq));
+		//					currencyPairStringRead = false;
+		//					currencyPairComplete = false;
+		//				}
+		//
+		//				if(each.getName().equals("asks"))
+		//					asksDoneParsing = false;
+		//				else if(each.getName().equals("bids"))
+		//					asksDoneParsing = true;
+		//				else if(each.getName().equals("isFrozen"))
+		//					isFrozen = Boolean.parseBoolean(each.getValue().toString());
+		//				else if(each.getName().equals("seq")) {
+		//					seq = Long.parseLong(each.getValue().toString());
+		//					currencyPairComplete = true;
+		//				}
+		//				else if(currencyPairStringRead) {
+		//					OrderBookData.Order order = new OrderBookData.Order(
+		//							Double.parseDouble(each.getName().toString()),
+		//							Double.parseDouble(each.getValue().toString()));
+		//					if(!asksDoneParsing)
+		//						asks.add(order);
+		//					else
+		//						bids.add(order);
+		//				}
+		//
+		//				if(!currencyPairStringRead) {
+		//					currencyPair = each.getName();
+		//					currencyPairStringRead = true;
+		//				}
+		//			}
+		//
+		//			return orderBookDatas.toArray(new OrderBookData[orderBookDatas.size()]);
+		//		}
 
 		/**
 		 * Returns the past 200 trades for a given market
@@ -542,6 +650,8 @@ public class Poloniex {
 	 */
 	private static ArrayList<CustomNameValuePair<String, CustomNameValuePair>> evaluateExpression(String parse) {
 
+		System.out.println(parse);
+
 		/*
 		 * Cut into individual pieces
 		 */
@@ -691,11 +801,24 @@ public class Poloniex {
 		 * 5/7 complete
 		 */
 
-		//		Poloniex.Public.ticker();
+		//		TickerData[] ticker = Poloniex.Public.ticker();
+		//		for(int j = 0; j < ticker.length; j++) {
+		//			System.out.println(ticker[j]);
+		//		}
 
-		//		Poloniex.Public.volume();
+		//		VolumeData[] volume = Poloniex.Public.volume();
+		//		for(int j = 0; j < volume.length; j++) {
+		//			System.out.println(volume[j]);
+		//		}
 
-		Poloniex.Public.orderBook("BTC_ETH");
+		//		OrderBookData orderBookData = Poloniex.Public.orderBook("BTC_ETH");
+		//		System.out.println(orderBookData);
+
+		//		// TODO: fix this
+		//		OrderBookData[] orderBookDatas = Poloniex.Public.orderBookAll();
+		//		for(int j = 0; j < orderBookDatas.length; j++) {
+		//			System.out.println(orderBookDatas[j]);
+		//		}
 
 		//		Poloniex.Public.tradeHistory("BTC_ETH");
 

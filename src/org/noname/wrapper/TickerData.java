@@ -39,21 +39,20 @@ public class TickerData {
 
 	}
 
-	// TODO: test format correctness
 	@Override
 	public String toString() {
 
 		return "{\"" + currencyPair + "\":{" +
-				"\"id\":" + id + "\",\"" +
-				"\"last\":" + last + "\",\"" +
-				"\"lowestAsk\":" + lowestAsk + "\",\"" +
-				"\"highestBid\":" + highestBid + "\",\"" +
-				"\"percentChange\":" + percentChange + "\",\"" +
-				"\"baseVolume\":" + baseVolume + "\",\"" +
-				"\"quoteVolume\":" + quoteVolume + "\",\"" +
-				"\"isFrozen\":" + isFrozen + "\",\"" +
-				"\"high24hr\":" + high24hr + "\",\"" +
-				"\"low24hr\":" + low24hr + "\"}";
+				"\"id\":" + id + "," +
+				"\"last\":" + last + "," +
+				"\"lowestAsk\":" + lowestAsk + "," +
+				"\"highestBid\":" + highestBid + "," +
+				"\"percentChange\":" + percentChange + "," +
+				"\"baseVolume\":" + baseVolume + "," +
+				"\"quoteVolume\":" + quoteVolume + "," +
+				"\"isFrozen\":" + isFrozen + "," +
+				"\"high24hr\":" + high24hr + "," +
+				"\"low24hr\":" + low24hr + "}";
 
 	}
 
