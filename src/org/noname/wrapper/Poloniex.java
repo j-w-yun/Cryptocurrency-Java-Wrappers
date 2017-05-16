@@ -540,9 +540,7 @@ public class Poloniex {
 	 * Parses Poloniex API response in JSON format
 	 * @param parse Poloniex API response in JSON format
 	 */
-	private static CustomNameValuePair<String, Object> evaluateExpression(String parse) {
-
-		System.out.println(parse);
+	private static ArrayList<CustomNameValuePair<String, CustomNameValuePair>> evaluateExpression(String parse) {
 
 		/*
 		 * Cut into individual pieces
@@ -659,17 +657,24 @@ public class Poloniex {
 		}
 
 		// DEBUG: display post-fix expression
-		for(CustomNameValuePair each : stack) {
+		for(CustomNameValuePair<String, CustomNameValuePair> each : stack) {
 			System.out.println(each);
 		}
 
-		// TODO
-		return null;
+		// Move stack to ArrayList
+		ArrayList<CustomNameValuePair<String, CustomNameValuePair>> toReturn = new ArrayList<>();
+		for(CustomNameValuePair each : stack) {
+			toReturn.add(each);
+		}
+
+		return toReturn;
 	}
 
 	private static int rankOperand(String operand) {
 
-		if(operand.equals(":") || operand.equals(","))
+		if(operand.equals(":"))
+			return 0;
+		else if(operand.equals(","))
 			return 1;
 		else if(operand.equals("{") || operand.equals("["))
 			return 2;
@@ -690,7 +695,7 @@ public class Poloniex {
 
 		//		Poloniex.Public.volume();
 
-		//		Poloniex.Public.orderBook("BTC_ETH");
+		Poloniex.Public.orderBook("BTC_ETH");
 
 		//		Poloniex.Public.tradeHistory("BTC_ETH");
 
@@ -698,7 +703,7 @@ public class Poloniex {
 
 		//		TODO: Poloniex.Public.chartData(long unixStartDate, long unixEndDate, String currencyPair);
 
-		Poloniex.Public.currencies();
+		//		Poloniex.Public.currencies();
 
 		//		Poloniex.Public.loanOrders("BTC");
 
