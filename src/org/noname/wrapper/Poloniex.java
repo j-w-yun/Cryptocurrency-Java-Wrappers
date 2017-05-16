@@ -1,18 +1,26 @@
 package org.noname.wrapper;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -24,13 +32,12 @@ public class Poloniex {
 
 	private static final String TRADING_URL = "https://poloniex.com/tradingApi";
 	private static final String PUBLIC_URL = "https://poloniex.com/public";
+	private static CloseableHttpClient httpClient = HttpClients.createDefault();
 
 	/**
 	 * Wrapper for Poloniex public API. According to Poloniex API documentation, there are six public methods, all of which take HTTP GET requests and return output in JSON format
 	 */
 	public static class Public {
-
-		private static CloseableHttpClient httpClient = HttpClients.createDefault();
 
 		/**
 		 * Returns the ticker for all markets
@@ -115,6 +122,18 @@ public class Poloniex {
 		 */
 		public static void tradeHistory(String currencyPair) {
 
+			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnTradeHistory&currencyPair=all");
+			String response = null;
+
+			try {
+				CloseableHttpResponse httpResponse = httpClient.execute(get);
+				response = EntityUtils.toString(httpResponse.getEntity());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			parse(response);
+
 		}
 
 		/**
@@ -157,9 +176,9 @@ public class Poloniex {
 	/**
 	 * Wrapper for Poloniex trading API. According to Poloniex API documentation, there is a default limit of 6 calls per second
 	 */
-	public static class Trading {
+	public static class Trade {
 
-		private String sign;
+		private String secretKey;
 		private String key;
 
 		/**
@@ -189,16 +208,49 @@ public class Poloniex {
 		}
 
 		/**
-		 * @param sign The query's POST data signed by your key's "secret" according to the HMAC-SHA512 method
+		 * @param secretKey Your secret key provided by Poloniex
 		 * @param key Your API key
 		 */
-		public Trading(String sign, String key) {
-			this.sign = sign;
+		public Trade(String secretKey, String key) {
+			this.secretKey = secretKey;
 			this.key = key;
 		}
 
-		// TODO
+		/**
+		 * Returns all of your available balances
+		 */
+		public void returnBalances() {
 
+			String nonce = String.valueOf(System.currentTimeMillis());
+			String queryArgs = "command=returnBalances&nonce=" + nonce;
+
+			String sign = sign(secretKey, queryArgs);
+
+			HttpPost post = new HttpPost(TRADING_URL);
+			try {
+				post.addHeader("Key", key);
+				post.addHeader("Sign", sign);
+				post.setEntity(new ByteArrayEntity(queryArgs.getBytes("UTF-8")));
+
+				List<NameValuePair> params = new ArrayList<>();
+				params.add(new BasicNameValuePair("command", "returnBalances"));
+				params.add(new BasicNameValuePair("nonce", nonce));
+				post.setEntity(new UrlEncodedFormEntity(params));
+			} catch (UnsupportedEncodingException uee) {
+				uee.printStackTrace();
+			}
+
+			String response = null;
+			try {
+				CloseableHttpResponse httpResponse = httpClient.execute(post);
+				response = EntityUtils.toString(httpResponse.getEntity());
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+
+			parse(response);
+
+		}
 
 	}
 
@@ -206,7 +258,7 @@ public class Poloniex {
 	 * Parses Poloniex API response in JSON format
 	 * @param parse Poloniex API response in JSON format
 	 */
-	private static NameValuePair<String, Object> parse(String parse) {
+	private static CustomNameValuePair<String, Object> parse(String parse) {
 
 		System.out.println(parse);
 
@@ -239,11 +291,23 @@ public class Poloniex {
 
 	public static void main(String[] args) {
 
-		Poloniex.Public.ticker();
+		//		Poloniex.Public.ticker();
 
-		Poloniex.Public.volume();
+		//		Poloniex.Public.volume();
 
-		Poloniex.Public.orderBook("BTC_ETH");
+		//		Poloniex.Public.orderBook("BTC_ETH");
+
+		//		Poloniex.Public.tradeHistory("BTC_ETH");
+
+		/*
+		 * Trading API requires your API key and private key tied to your Poloniex account
+		 */
+		String secretKey = "";
+		String apiKey = "";
+
+		Poloniex.Trade trade = new Poloniex.Trade(secretKey, apiKey);
+
+		trade.returnBalances();
 
 	}
 }

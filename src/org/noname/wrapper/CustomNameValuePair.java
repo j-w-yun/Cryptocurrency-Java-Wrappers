@@ -1,14 +1,18 @@
 package org.noname.wrapper;
 
-public class NameValuePair<S,T> {
+/**
+ * @author Jaewan Yun
+ * @author Zachary A. Hankinson
+ */
+public class CustomNameValuePair<S,T> {
 
 	private S name;
 	private T value;
 
 	@SuppressWarnings("unused")
-	private NameValuePair() {throw new UnsupportedOperationException();}
+	private CustomNameValuePair() {throw new UnsupportedOperationException();}
 
-	public NameValuePair(S name, T value) {
+	public CustomNameValuePair(S name, T value) {
 		this.name = name;
 		this.value = value;
 	}
