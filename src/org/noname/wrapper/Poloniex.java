@@ -54,7 +54,7 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			parse(response);
+			evaluateExpression(response);
 
 		}
 
@@ -73,7 +73,7 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			parse(response);
+			evaluateExpression(response);
 
 		}
 
@@ -93,7 +93,7 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			parse(response);
+			evaluateExpression(response);
 
 		}
 
@@ -112,7 +112,7 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			parse(response);
+			evaluateExpression(response);
 
 		}
 
@@ -132,7 +132,7 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			parse(response);
+			evaluateExpression(response);
 
 		}
 
@@ -171,7 +171,7 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			parse(response);
+			evaluateExpression(response);
 
 		}
 
@@ -191,7 +191,7 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			parse(response);
+			evaluateExpression(response);
 
 		}
 
@@ -272,7 +272,7 @@ public class Poloniex {
 				ioe.printStackTrace();
 			}
 
-			parse(response);
+			evaluateExpression(response);
 
 		}
 
@@ -540,34 +540,142 @@ public class Poloniex {
 	 * Parses Poloniex API response in JSON format
 	 * @param parse Poloniex API response in JSON format
 	 */
-	private static CustomNameValuePair<String, Object> parse(String parse) {
+	private static CustomNameValuePair<String, Object> evaluateExpression(String parse) {
 
 		System.out.println(parse);
 
-		String[] splitStrings = parse.split("");
+		/*
+		 * Cut into individual pieces
+		 */
+
+		String[] splitStrings = parse.split(""); // Split everything into length of 1
 
 		StringBuilder sb = new StringBuilder();
-
-		Stack<String> stack = new Stack<>();
+		Stack<String> inFixList = new Stack<>();
 
 		for(String each : splitStrings) {
+
+			// Number or word has finished building
 			if(each.equals("{") || each.equals("[") || each.equals("}") || each.equals("]") || each.equals(",") || each.equals("\"") || each.equals(":")) {
-				if(!sb.toString().equals(""))
-					stack.add(sb.toString());
-				if(!each.equals("\"") && !each.equals(","))
-					stack.add(each);
-				sb.setLength(0);
-			} else {
-				sb.append(each);
+
+				if(!sb.toString().equals("")) // Do not include whitespace
+					inFixList.push(sb.toString());
+
+				if(!each.equals("\"")) // Do not include quotes
+					inFixList.push(each);
+
+				sb.setLength(0); // Clear the StringBuilder
+
 			}
+
+			// Number or word not yet completly parsed
+			else {
+				sb.append(each); // Keep building until sentinel characters are met
+			}
+
 		}
 
-		for(String each : stack) {
+		/*
+		 * Convert in-fix expression to post-fix expression
+		 */
+
+		Stack<String> operandStack = new Stack<>();
+		Stack<String> postFixList = new Stack<>();
+
+		for(String each : inFixList) {
+
+			if(each.equals("{") || each.equals("[") || each.equals("}") || each.equals("]") || each.equals(":") || each.equals(",")) {
+
+				// { or [
+				if(each.equals("{") || each.equals("["))
+					operandStack.push(each);
+
+				// } or ]
+				else if(each.equals("}") || each.equals("]")){
+					String popped = operandStack.pop();
+					while(!popped.equals("{") && !popped.equals("[")) {
+						postFixList.push(popped);
+						popped = operandStack.pop();
+					}
+				}
+
+				// :
+				else {
+					while(!operandStack.isEmpty() && rankOperand(operandStack.peek()) < rankOperand(each)) {
+						postFixList.push(operandStack.pop());
+					}
+					operandStack.push(each);
+				}
+
+			} else
+				postFixList.push(each);
+
+		}
+
+		while(!operandStack.isEmpty()) {
+			postFixList.push(operandStack.pop());
+		}
+
+		//		// DEBUG: display post-fix expression
+		//		for(String each : postFixList) {
+		//			System.out.println(each);
+		//		}
+
+		/*
+		 * Convert post-fix expression into name-value pair format
+		 */
+
+		Stack<CustomNameValuePair<String, CustomNameValuePair>> stack = new Stack<>();
+		for(String each : postFixList) {
+
+			if(each.equals(",")) {
+				CustomNameValuePair b = stack.pop();
+				CustomNameValuePair a = stack.pop();
+				if(a.getValue() == null || b.getValue() == null) {
+					a.setValue(b);
+					stack.push(a);
+				} else {
+					stack.push(a);
+					stack.push(b);
+				}
+			}
+
+			else if(each.equals(":")) {
+				CustomNameValuePair b = stack.pop();
+				CustomNameValuePair a = stack.pop();
+				if(a.getValue() == null || b.getValue() == null) {
+					a.setValue(b);
+					stack.push(a);
+				} else {
+					stack.push(a);
+					stack.push(b);
+				}
+			}
+
+			else {
+				stack.push(new CustomNameValuePair<String, CustomNameValuePair>(each, null));
+			}
+
+		}
+
+		// DEBUG: display post-fix expression
+		for(CustomNameValuePair each : stack) {
 			System.out.println(each);
 		}
 
 		// TODO
 		return null;
+	}
+
+	private static int rankOperand(String operand) {
+
+		if(operand.equals(":") || operand.equals(","))
+			return 1;
+		else if(operand.equals("{") || operand.equals("["))
+			return 2;
+		else
+			return 3;
+
 	}
 
 
@@ -590,7 +698,7 @@ public class Poloniex {
 
 		//		TODO: Poloniex.Public.chartData(long unixStartDate, long unixEndDate, String currencyPair);
 
-		//		Poloniex.Public.currencies();
+		Poloniex.Public.currencies();
 
 		//		Poloniex.Public.loanOrders("BTC");
 
@@ -599,13 +707,13 @@ public class Poloniex {
 		 * 1/31 complete
 		 */
 
-		// Trading API requires your API key and private key tied to your Poloniex account. https://poloniex.com/apiKeys
-		String secretKey = "";
-		String apiKey = "";
-
-		Poloniex.Trade my = new Poloniex.Trade(secretKey, apiKey);
-
-		my.balances();
+		//		// Trading API requires your API key and private key tied to your Poloniex account. https://poloniex.com/apiKeys
+		//		String secretKey = "";
+		//		String apiKey = "";
+		//
+		//		Poloniex.Trade my = new Poloniex.Trade(secretKey, apiKey);
+		//
+		//		my.balances();
 
 	}
 }
