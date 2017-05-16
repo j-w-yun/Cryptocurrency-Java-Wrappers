@@ -143,7 +143,7 @@ public class Poloniex {
 		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
 		 */
 		public static void tradeHistory(long unixStartDate, long unixEndDate, String currencyPair) {
-
+			// TODO
 		}
 
 		/**
@@ -153,7 +153,7 @@ public class Poloniex {
 		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
 		 */
 		public static void chartData(long unixStartDate, long unixEndDate, String currencyPair) {
-
+			// TODO
 		}
 
 		/**
@@ -177,7 +177,7 @@ public class Poloniex {
 
 		/**
 		 * Returns the list of loan offers and demands for a given currency
-		 * @param currency cryptocurrency name in symbol (e.g. BTC)
+		 * @param currency Cryptocurrency name in symbol (e.g. BTC)
 		 */
 		public static void loanOrders(String currency) {
 
@@ -243,7 +243,7 @@ public class Poloniex {
 		/**
 		 * Returns all of your available balances
 		 */
-		public void returnBalances() {
+		public void balances() {
 
 			String nonce = String.valueOf(System.currentTimeMillis());
 			String queryArgs = "command=returnBalances&nonce=" + nonce;
@@ -274,6 +274,264 @@ public class Poloniex {
 
 			parse(response);
 
+		}
+
+		/**
+		 * Returns all of your balances, including available balance, balance on orders, and the estimated BTC value of your balance. By default, this call is limited to your exchange account
+		 */
+		public void completeBalances() {
+			// TODO
+		}
+
+		/**
+		 * Returns all of your deposit addresses
+		 */
+		public void depositAddresses() {
+			// TODO
+		}
+
+		/**
+		 * Generates a new deposit address for the currency specified by the currency parameter
+		 * @param currency Currency for which to generate a new deposit (e.g. BTC)
+		 */
+		public void generateNewAddress(String currency) {
+			// TODO
+		}
+
+		/**
+		 * Returns your deposit and withdrawal history within a range, specified by the "start" and "end" parameters
+		 * @param unixStartDate Start date in UNIX timestamp
+		 * @param unixEndDate End date in UNIX timestamp
+		 */
+		public void depositWithdrawals(long unixStartDate, long unixEndDate) {
+			// TODO
+		}
+
+		/**
+		 * Returns your open orders for a given market, specified by the "currencyPair" parameter
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 */
+		public void openOrders(String currencyPair) {
+			// TODO
+		}
+
+		/**
+		 * Returns your open orders for all markets
+		 */
+		public void openOrdersAll() {
+			// TODO
+		}
+
+		/**
+		 * Returns your trade history for a given market, specified by the "currencyPair" parameter
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 */
+		public void tradeHistory(String currencyPair) {
+			// TODO
+		}
+
+		/**
+		 * Returns your trade history for all markets
+		 */
+		public void tradeHistoryAll() {
+			// TODO
+		}
+
+		/**
+		 * Returns all trades involving a given order, specified by the "orderNumber" parameter
+		 * @param orderNumber Order number
+		 */
+		public void orderTrades(String orderNumber) {
+			// TODO
+		}
+
+		/**
+		 * Places a limit buy order in a given market. Required parameters are "currencyPair", "rate", and "amount". If successful, the method will return the order number
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 * @param rate Rate at which to buy
+		 * @param amount Amount to buy
+		 * @param options You may optionally set this to "fillOrKill", "immediateOrCancel", "postOnly"; otherwise leave as null. A fill-or-kill order will either fill in its entirety or be completely aborted. An immediate-or-cancel order can be partially or completely filled, but any portion of the order that cannot be filled immediately will be canceled rather than left on the order book. A post-only order will only be placed if no portion of it fills immediately; this guarantees you will never pay the taker fee on any part of the order that fills
+		 */
+		public void buy(String currencyPair, double rate, double amount, String options) {
+			// TODO
+		}
+
+		/**
+		 * Places a sell order in a given market. Required parameters are "currencyPair", "rate", and "amount"
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 * @param rate Rate at which to sell
+		 * @param amount Amount to sell
+		 */
+		public void sell(String currencyPair, double rate, double amount) {
+			// TODO
+		}
+
+		/**
+		 * Cancels an order you have placed in a given market. Required parameter is "orderNumber"
+		 * @param orderNumber Order number
+		 * @return If successful, the method will return true
+		 */
+		public boolean cancelOrder(String orderNumber) {
+			// TODO
+			return false;
+		}
+
+		/**
+		 * Cancels an order and places a new one of the same type in a single atomic transaction, meaning either both operations will succeed or both will fail. Required parameters are "orderNumber" and "rate"; you may optionally specify "amount" if you wish to change the amount of the new order
+		 * @param orderNumber Order number
+		 * @param rate Rate
+		 * @param amount Optional parameter. Default is null
+		 */
+		public void moveOrder(String orderNumber, double rate, Double amount) {
+			// TODO
+		}
+
+		/**
+		 * Immediately places a withdrawal for a given currency, with no email confirmation. In order to use this method, the withdrawal privilege must be enabled for your API key. Required parameters are "currency", "amount", and "address"
+		 * @param currency Currency to withdraw (e.g. BTC)
+		 * @param amount Amount to withdraw
+		 * @param address Address into which to withdraw
+		 */
+		public void withdraw(String currency, double amount, String address) {
+			// TODO
+		}
+
+		/**
+		 * If you are enrolled in the maker-taker fee schedule, returns your current trading fees and trailing 30-day volume in BTC. This information is updated once every 24 hours
+		 */
+		public void feeInfo() {
+			// TODO
+		}
+
+		/**
+		 * Returns your balances sorted by account. You may optionally specify the "account" parameter if you wish to fetch only the balances of one account. Please note that balances in your margin account may not be accessible if you have any open margin positions or orders
+		 * @param account Optional parameter. Default is null
+		 */
+		public void availableAccountBalances(String account) {
+			// TODO
+		}
+
+		/**
+		 * Returns your current tradable balances for each currency in each market for which margin trading is enabled. Please note that these balances may vary continually with market conditions
+		 */
+		public void tradableBalances() {
+			// TODO
+		}
+
+		/**
+		 * Transfers funds from one account to another (e.g. from your exchange account to your margin account). Required parameters are "currency", "amount", "fromAccount", and "toAccount"
+		 * @param currency Currency to transfer (e.g. BTC)
+		 * @param amount Amount to transfer
+		 * @param fromAccount Account from which to transfer
+		 * @param toAccount Account into which to transfer
+		 */
+		public void transferBalance(String currency, double amount, String fromAccount, String toAccount) {
+			// TODO
+		}
+
+		/**
+		 * Returns a summary of your entire margin account. This is the same information you will find in the Margin Account section of the Margin Trading page, under the Markets list
+		 */
+		public void marginAccountSummary() {
+			// TODO
+		}
+
+		/**
+		 * Places a margin buy order in a given market. Required parameters are "currencyPair", "rate", and "amount". You may optionally specify a maximum lending rate using the "lendingRate" parameter
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 * @param rate Rate at which to buy
+		 * @param amount Amount to buy
+		 * @param lendingRate Optional parameter. Default is null
+		 */
+		public void marginBuy(String currencyPair, double rate, double amount, Double lendingRate) {
+			// TODO
+		}
+
+		/**
+		 * Places a margin sell order in a given market. Required parameters are "currencyPair", "rate", and "amount"
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 * @param rate Rate at which to sell
+		 * @param amount Amount to sell
+		 */
+		public void marginSell(String currencyPair, double rate, double amount) {
+			// TODO
+		}
+
+		/**
+		 * Returns information about your margin position in a given market, specified by the "currencyPair" parameter
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 */
+		public void getMarginPosition(String currencyPair) {
+			// TODO
+		}
+
+		/**
+		 * Fetch all of your margin positions at once
+		 */
+		public void getMarginPositionAll() {
+			// TODO
+		}
+
+		/**
+		 * Closes your margin position in a given market (specified by the "currencyPair" parameter) using a market order
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 */
+		public void closeMarginPosition(String currencyPair) {
+			// TODO
+		}
+
+		/**
+		 * Creates a loan offer for a given currency. Required parameters are "currency", "amount", "duration", "autoRenew" (0 or 1), and "lendingRate"
+		 * @param currency Currency for which to create a loan offer
+		 * @param amount Amount to offer
+		 * @param duration Duration of loan
+		 * @param autoRenew Automatically renew
+		 * @param lendingRate Rate at which to lend
+		 */
+		public void createLoanOffer(String currency, double amount, double duration, boolean autoRenew, double lendingRate) {
+			// TODO
+		}
+
+		/**
+		 * Cancels a loan offer specified by the "orderNumber" POST parameter
+		 * @param orderNumber Order number
+		 */
+		public void cancelLoanOffer(String orderNumber) {
+			// TODO
+		}
+
+		/**
+		 * Returns your open loan offers for each currency
+		 */
+		public void openLoanOffers() {
+			// TODO
+		}
+
+		/**
+		 * Returns your active loans for each currency
+		 */
+		public void activeLoans() {
+			// TODO
+		}
+
+		/**
+		 * Returns your lending history within a time range specified by the "start" and "end" parameters as UNIX timestamps. "limit" may also be specified to limit the number of rows returned
+		 * @param unixStartDate Start date in UNIX timestamp
+		 * @param unixEndDate End date in UNIX timestamp
+		 * @param limit Optional parameter. Default is null
+		 */
+		public void lendingHistory(long unixStartDate, long unixEndDate, Integer limit) {
+			// TODO
+		}
+
+		/**
+		 * Toggles the autoRenew setting on an active loan, specified by the "orderNumber" parameter
+		 * @param orderNumber Order number
+		 * @return If successful, "message" will indicate the new autoRenew setting
+		 */
+		public boolean autoRenew(String orderNumber) {
+			// TODO
+			return false;
 		}
 
 	}
@@ -315,6 +573,11 @@ public class Poloniex {
 
 	public static void main(String[] args) {
 
+		/*
+		 * 7 public API methods
+		 * 5/7 complete
+		 */
+
 		//		Poloniex.Public.ticker();
 
 		//		Poloniex.Public.volume();
@@ -323,19 +586,26 @@ public class Poloniex {
 
 		//		Poloniex.Public.tradeHistory("BTC_ETH");
 
-		Poloniex.Public.currencies();
+		//		TODO: Poloniex.Public.tradeHistory(long unixStartDate, long unixEndDate, String currencyPair);
 
-		Poloniex.Public.loanOrders("BTC");
+		//		TODO: Poloniex.Public.chartData(long unixStartDate, long unixEndDate, String currencyPair);
+
+		//		Poloniex.Public.currencies();
+
+		//		Poloniex.Public.loanOrders("BTC");
 
 		/*
-		 * Trading API requires your API key and private key tied to your Poloniex account
+		 * 31 trading API methods
+		 * 1/31 complete
 		 */
-		//		String secretKey = "";
-		//		String apiKey = "";
-		//
-		//		Poloniex.Trade trade = new Poloniex.Trade(secretKey, apiKey);
-		//
-		//		trade.returnBalances();
+
+		// Trading API requires your API key and private key tied to your Poloniex account. https://poloniex.com/apiKeys
+		String secretKey = "";
+		String apiKey = "";
+
+		Poloniex.Trade my = new Poloniex.Trade(secretKey, apiKey);
+
+		my.balances();
 
 	}
 }
