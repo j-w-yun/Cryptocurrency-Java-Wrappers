@@ -79,7 +79,7 @@ public class Poloniex {
 
 		/**
 		 * Returns the order book for a given market, as well as a sequence number for use with the Push API and an indicator specifying whether the market is frozen
-		 * @param currencyPair Data of a specified pair of cryptocurrencies to return
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
 		 */
 		public static void orderBook(String currencyPair) {
 
@@ -118,7 +118,7 @@ public class Poloniex {
 
 		/**
 		 * Returns the past 200 trades for a given market
-		 * @param currencyPair Data of a specified pair of cryptocurrencies to return
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
 		 */
 		public static void tradeHistory(String currencyPair) {
 
@@ -140,7 +140,7 @@ public class Poloniex {
 		 * Returns past trades for a given market, up to 50,000 trades in a range specified in UNIX timestamps
 		 * @param unixStartDate Start date in UNIX timestamp
 		 * @param unixEndDate End date in UNIX timestamp
-		 * @param currencyPair Data of a specified pair of cryptocurrencies to return
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
 		 */
 		public static void tradeHistory(long unixStartDate, long unixEndDate, String currencyPair) {
 
@@ -150,7 +150,7 @@ public class Poloniex {
 		 * Returns candlestick chart data for the specified date range for the data returned in UNIX timestamps
 		 * @param unixStartDate Start date in UNIX timestamp
 		 * @param unixEndDate End date in UNIX timestamp
-		 * @param currencyPair Data of a specified pair of cryptocurrencies to return
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
 		 */
 		public static void chartData(long unixStartDate, long unixEndDate, String currencyPair) {
 
@@ -161,13 +161,37 @@ public class Poloniex {
 		 */
 		public static void currencies() {
 
+			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnCurrencies");
+			String response = null;
+
+			try {
+				CloseableHttpResponse httpResponse = httpClient.execute(get);
+				response = EntityUtils.toString(httpResponse.getEntity());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			parse(response);
+
 		}
 
 		/**
 		 * Returns the list of loan offers and demands for a given currency
-		 * @param currencyPair Data of a specified pair of cryptocurrencies to return
+		 * @param currency cryptocurrency name in symbol (e.g. BTC)
 		 */
-		public static void loanOrders(String currencyPair) {
+		public static void loanOrders(String currency) {
+
+			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnLoanOrders&currency=" + currency);
+			String response = null;
+
+			try {
+				CloseableHttpResponse httpResponse = httpClient.execute(get);
+				response = EntityUtils.toString(httpResponse.getEntity());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			parse(response);
 
 		}
 
@@ -299,15 +323,19 @@ public class Poloniex {
 
 		//		Poloniex.Public.tradeHistory("BTC_ETH");
 
+		Poloniex.Public.currencies();
+
+		Poloniex.Public.loanOrders("BTC");
+
 		/*
 		 * Trading API requires your API key and private key tied to your Poloniex account
 		 */
-		String secretKey = "";
-		String apiKey = "";
-
-		Poloniex.Trade trade = new Poloniex.Trade(secretKey, apiKey);
-
-		trade.returnBalances();
+		//		String secretKey = "";
+		//		String apiKey = "";
+		//
+		//		Poloniex.Trade trade = new Poloniex.Trade(secretKey, apiKey);
+		//
+		//		trade.returnBalances();
 
 	}
 }
