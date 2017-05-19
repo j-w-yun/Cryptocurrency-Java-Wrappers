@@ -32,7 +32,11 @@ public class Poloniex {
 
 	private static final String TRADING_URL = "https://poloniex.com/tradingApi";
 	private static final String PUBLIC_URL = "https://poloniex.com/public";
-	private static CloseableHttpClient httpClient = HttpClients.createDefault();
+	private static CloseableHttpClient httpClient;
+
+	static {
+		httpClient = HttpClients.createDefault();
+	}
 
 	/**
 	 * Wrapper for Poloniex public API. According to Poloniex API documentation, there are six public methods, all of which take HTTP GET requests and return output in JSON format
@@ -74,6 +78,7 @@ public class Poloniex {
 			}
 
 			return b.toArray(new TickerData[b.size()]);
+
 		}
 
 		/**
@@ -128,10 +133,12 @@ public class Poloniex {
 
 			ArrayList<OrderBookData.Order> asks = new ArrayList<>();
 			ArrayList<OrderBookData.Order> bids = new ArrayList<>();
+
+			boolean asksDoneParsing = false;
+
 			boolean isFrozen = false;
 			long seq = 0;
 
-			boolean asksDoneParsing = false;
 			for(CustomNameValuePair<String, CustomNameValuePair> each : a) {
 
 				if(each.getName().equals("asks"))
@@ -151,86 +158,152 @@ public class Poloniex {
 					else
 						bids.add(order);
 				}
-
 			}
 
-			return new OrderBookData(null, asks, bids, isFrozen, seq);
+			return new OrderBookData(currencyPair, asks, bids, isFrozen, seq);
 
 		}
 
-		//		/**
-		//		 * Returns the order book for all markets, as well as a sequence number for use with the Push API and an indicator specifying whether the market is frozen
-		//		 */
-		//		public static OrderBookData[] orderBookAll() {
-		//
-		//			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnOrderBook&currencyPair=all");
-		//			String response = null;
-		//
-		//			try {
-		//				CloseableHttpResponse httpResponse = httpClient.execute(get);
-		//				response = EntityUtils.toString(httpResponse.getEntity());
-		//			} catch (IOException e) {
-		//				e.printStackTrace();
-		//			}
-		//
-		//			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
-		//
-		//			ArrayList<OrderBookData> orderBookDatas = new ArrayList<>();
-		//
-		//			ArrayList<OrderBookData.Order> asks = new ArrayList<>();
-		//			ArrayList<OrderBookData.Order> bids = new ArrayList<>();
-		//			boolean isFrozen = false;
-		//			long seq = 0;
-		//
-		//			String currencyPair = null;
-		//			boolean currencyPairStringRead = false;
-		//			boolean currencyPairComplete = false;
-		//
-		//			boolean asksDoneParsing = false;
-		//			for(CustomNameValuePair<String, CustomNameValuePair> each : a) {
-		//
-		//				if(currencyPairComplete) {
-		//					orderBookDatas.add(new OrderBookData(currencyPair, asks, bids, isFrozen, seq));
-		//					currencyPairStringRead = false;
-		//					currencyPairComplete = false;
-		//				}
-		//
-		//				if(each.getName().equals("asks"))
-		//					asksDoneParsing = false;
-		//				else if(each.getName().equals("bids"))
-		//					asksDoneParsing = true;
-		//				else if(each.getName().equals("isFrozen"))
-		//					isFrozen = Boolean.parseBoolean(each.getValue().toString());
-		//				else if(each.getName().equals("seq")) {
-		//					seq = Long.parseLong(each.getValue().toString());
-		//					currencyPairComplete = true;
-		//				}
-		//				else if(currencyPairStringRead) {
-		//					OrderBookData.Order order = new OrderBookData.Order(
-		//							Double.parseDouble(each.getName().toString()),
-		//							Double.parseDouble(each.getValue().toString()));
-		//					if(!asksDoneParsing)
-		//						asks.add(order);
-		//					else
-		//						bids.add(order);
-		//				}
-		//
-		//				if(!currencyPairStringRead) {
-		//					currencyPair = each.getName();
-		//					currencyPairStringRead = true;
-		//				}
-		//			}
-		//
-		//			return orderBookDatas.toArray(new OrderBookData[orderBookDatas.size()]);
-		//		}
+		/**
+		 * Returns the order book for all markets, as well as a sequence number for use with the Push API and an indicator specifying whether the market is frozen
+		 */
+		public static OrderBookData[] orderBookAll() {
+
+			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnOrderBook&currencyPair=all");
+			String response = null;
+
+			try {
+				CloseableHttpResponse httpResponse = httpClient.execute(get);
+				response = EntityUtils.toString(httpResponse.getEntity());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
+
+			ArrayList<OrderBookData> orderBookDatas = new ArrayList<>();
+
+			ArrayList<OrderBookData.Order> asks = new ArrayList<>();
+			ArrayList<OrderBookData.Order> bids = new ArrayList<>();
+
+			boolean asksDoneParsing = false;
+
+			for(CustomNameValuePair<String, CustomNameValuePair> each : a) {
+
+				if(each.getName().equals("asks"))
+					asksDoneParsing = false;
+				else if(each.getName().equals("bids"))
+					asksDoneParsing = true;
+				else if(each.getName().equals("isFrozen"))
+					orderBookDatas.get(orderBookDatas.size()-1).isFrozen = Boolean.parseBoolean(each.getValue().toString());
+				else if(each.getName().equals("seq"))
+					orderBookDatas.get(orderBookDatas.size()-1).seq = Long.parseLong(each.getValue().toString());
+				else if(each.getValue() == null) {
+					orderBookDatas.add(new OrderBookData(each.getName(), new ArrayList<>(), new ArrayList<>(), false, 0));
+				} else {
+					OrderBookData.Order order = new OrderBookData.Order(
+							Double.parseDouble(each.getName().toString()),
+							Double.parseDouble(each.getValue().toString()));
+					if(!asksDoneParsing) {
+						asks.add(order);
+						if(orderBookDatas.get(orderBookDatas.size()-1).asks == null)
+							orderBookDatas.get(orderBookDatas.size()-1).asks = new ArrayList<>();
+						orderBookDatas.get(orderBookDatas.size()-1).asks.add(order);
+					} else {
+						bids.add(order);
+						if(orderBookDatas.get(orderBookDatas.size()-1).bids == null)
+							orderBookDatas.get(orderBookDatas.size()-1).bids = new ArrayList<>();
+						orderBookDatas.get(orderBookDatas.size()-1).bids.add(order);
+					}
+				}
+			}
+
+			return orderBookDatas.toArray(new OrderBookData[orderBookDatas.size()]);
+
+		}
 
 		/**
 		 * Returns the past 200 trades for a given market
 		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
 		 */
-		public static void tradeHistory(String currencyPair) {
+		public static TradeData[] tradeHistory(String currencyPair) {
 
-			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnTradeHistory&currencyPair=all");
+			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnTradeHistory&currencyPair=" + currencyPair);
+			String response = null;
+
+			try {
+				CloseableHttpResponse httpResponse = httpClient.execute(get);
+				response = EntityUtils.toString(httpResponse.getEntity());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
+
+			ArrayList<TradeData> tradeHistoryDatas = new ArrayList<>();
+
+			TradeData current = new TradeData();
+
+			for(CustomNameValuePair<String, CustomNameValuePair> each : a) {
+
+				if(each.getName().equals("globalTradeID"))
+					current.globalTradeID = Long.parseLong(each.getValue().toString());
+				else if(each.getName().equals("tradeID"))
+					current.tradeID = Long.parseLong(each.getValue().toString());
+				else if(each.getName().equals("date"))
+					current.date = each.getValue().toString();
+				else if(each.getName().equals("type"))
+					current.type = each.getValue().toString();
+				else if(each.getName().equals("rate"))
+					current.rate = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("amount"))
+					current.amount = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("total")) {
+					current.total = Double.parseDouble(each.getValue().toString());
+					tradeHistoryDatas.add(current);
+					current = new TradeData();
+				}
+			}
+
+			return tradeHistoryDatas.toArray(new TradeData[tradeHistoryDatas.size()]);
+
+		}
+
+		/**
+		 * Returns past trades for a given market, up to 50,000 trades in a range specified in UNIX timestamps
+		 * @param unixStartDate Start date in UNIX timestamp
+		 * @param unixEndDate End date in UNIX timestamp
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 */
+		public static void tradeHistory(long unixStartDate, long unixEndDate, String currencyPair) {
+
+			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnTradeHistory&currencyPair=" + currencyPair
+					+ "&start=" + unixStartDate + "&end=" + unixEndDate);
+			String response = null;
+
+			try {
+				CloseableHttpResponse httpResponse = httpClient.execute(get);
+				response = EntityUtils.toString(httpResponse.getEntity());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			evaluateExpression(response);
+
+
+
+		}
+
+		/**
+		 * Returns candlestick chart data for the specified date range for the data returned in UNIX timestamps
+		 * @param unixStartDate Start date in UNIX timestamp
+		 * @param unixEndDate End date in UNIX timestamp
+		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 */
+		public static void chartData(long unixStartDate, long unixEndDate, String currencyPair) {
+
+			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnChartData&currencyPair=" + currencyPair
+					+ "&start=" + unixStartDate + "&end=" + unixEndDate);
 			String response = null;
 
 			try {
@@ -245,29 +318,9 @@ public class Poloniex {
 		}
 
 		/**
-		 * Returns past trades for a given market, up to 50,000 trades in a range specified in UNIX timestamps
-		 * @param unixStartDate Start date in UNIX timestamp
-		 * @param unixEndDate End date in UNIX timestamp
-		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
-		 */
-		public static void tradeHistory(long unixStartDate, long unixEndDate, String currencyPair) {
-			// TODO
-		}
-
-		/**
-		 * Returns candlestick chart data for the specified date range for the data returned in UNIX timestamps
-		 * @param unixStartDate Start date in UNIX timestamp
-		 * @param unixEndDate End date in UNIX timestamp
-		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
-		 */
-		public static void chartData(long unixStartDate, long unixEndDate, String currencyPair) {
-			// TODO
-		}
-
-		/**
 		 * Returns information about currencies
 		 */
-		public static void currencies() {
+		public static CurrencyData[] currencies() {
 
 			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnCurrencies");
 			String response = null;
@@ -279,7 +332,38 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			evaluateExpression(response);
+			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
+
+			ArrayList<CurrencyData> currencyDatas = new ArrayList<>();
+
+			CurrencyData current = new CurrencyData();
+
+			for(CustomNameValuePair<String, CustomNameValuePair> each : a) {
+
+				if(each.getName().equals("id"))
+					current.id = Integer.parseInt(each.getValue().toString());
+				else if(each.getName().equals("name"))
+					current.name = each.getValue().toString();
+				else if(each.getName().equals("txFee"))
+					current.txFee = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("minConf"))
+					current.minConf = Integer.parseInt(each.getValue().toString());
+				else if(each.getName().equals("depositAddress"))
+					current.depositAddress = each.getValue().toString();
+				else if(each.getName().equals("disabled"))
+					current.disabled = Boolean.parseBoolean(each.getValue().toString());
+				else if(each.getName().equals("delisted"))
+					current.delisted = Boolean.parseBoolean(each.getValue().toString());
+				else if(each.getName().equals("frozen")) {
+					current.frozen = Boolean.parseBoolean(each.getValue().toString());
+					currencyDatas.add(current);
+					current = new CurrencyData();
+				}
+				else
+					current.currency = each.getName().toString();
+			}
+
+			return currencyDatas.toArray(new CurrencyData[currencyDatas.size()]);
 
 		}
 
@@ -650,7 +734,7 @@ public class Poloniex {
 	 */
 	private static ArrayList<CustomNameValuePair<String, CustomNameValuePair>> evaluateExpression(String parse) {
 
-		System.out.println(parse);
+		//		System.out.println(parse);
 
 		/*
 		 * Cut into individual pieces
@@ -766,10 +850,10 @@ public class Poloniex {
 
 		}
 
-		// DEBUG: display post-fix expression
-		for(CustomNameValuePair<String, CustomNameValuePair> each : stack) {
-			System.out.println(each);
-		}
+		//		// DEBUG: display post-fix expression
+		//		for(CustomNameValuePair<String, CustomNameValuePair> each : stack) {
+		//			System.out.println(each);
+		//		}
 
 		// Move stack to ArrayList
 		ArrayList<CustomNameValuePair<String, CustomNameValuePair>> toReturn = new ArrayList<>();
@@ -797,8 +881,8 @@ public class Poloniex {
 	public static void main(String[] args) {
 
 		/*
-		 * 7 public API methods
-		 * 5/7 complete
+		 * 9 public API methods
+		 * 6/9 complete
 		 */
 
 		//		TickerData[] ticker = Poloniex.Public.ticker();
@@ -814,33 +898,38 @@ public class Poloniex {
 		//		OrderBookData orderBookData = Poloniex.Public.orderBook("BTC_ETH");
 		//		System.out.println(orderBookData);
 
-		//		// TODO: fix this
 		//		OrderBookData[] orderBookDatas = Poloniex.Public.orderBookAll();
 		//		for(int j = 0; j < orderBookDatas.length; j++) {
 		//			System.out.println(orderBookDatas[j]);
 		//		}
 
-		//		Poloniex.Public.tradeHistory("BTC_ETH");
+		//		TradeData[] tradeDatas = Poloniex.Public.tradeHistory("BTC_ETH");
+		//		for(int j = 0; j < tradeDatas.length; j++) {
+		//			System.out.println(tradeDatas[j]);
+		//		}
 
 		//		TODO: Poloniex.Public.tradeHistory(long unixStartDate, long unixEndDate, String currencyPair);
 
 		//		TODO: Poloniex.Public.chartData(long unixStartDate, long unixEndDate, String currencyPair);
 
-		//		Poloniex.Public.currencies();
+		CurrencyData[] currencyDatas = Poloniex.Public.currencies();
+		for(int j = 0; j < currencyDatas.length; j++) {
+			System.out.println(currencyDatas[j]);
+		}
 
-		//		Poloniex.Public.loanOrders("BTC");
+		//		TODO: Poloniex.Public.loanOrders("BTC");
 
 		/*
 		 * 31 trading API methods
 		 * 1/31 complete
 		 */
 
-		//		// Trading API requires your API key and private key tied to your Poloniex account. https://poloniex.com/apiKeys
-		//		String secretKey = "";
-		//		String apiKey = "";
-		//
+		// Trading API requires your API key and private key tied to your Poloniex account. https://poloniex.com/apiKeys
+		String secretKey = "";
+		String apiKey = "";
+
 		//		Poloniex.Trade my = new Poloniex.Trade(secretKey, apiKey);
-		//
+
 		//		my.balances();
 
 	}
