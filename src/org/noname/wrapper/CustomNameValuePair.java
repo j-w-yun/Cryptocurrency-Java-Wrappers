@@ -9,8 +9,7 @@ public class CustomNameValuePair<S,T> {
 	private S name;
 	private T value;
 
-	@SuppressWarnings("unused")
-	private CustomNameValuePair() {throw new UnsupportedOperationException();}
+	public CustomNameValuePair() {}
 
 	public CustomNameValuePair(S name, T value) {
 		this.name = name;
@@ -35,12 +34,10 @@ public class CustomNameValuePair<S,T> {
 
 	@Override
 	public String toString() {
-
 		if(value != null)
 			return name + ":" + value;
 		else
 			return name.toString();
-
 	}
 
 }

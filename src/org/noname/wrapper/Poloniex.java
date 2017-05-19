@@ -212,7 +212,7 @@ public class Poloniex {
 				else if(each.getName().equals("seq"))
 					orderBookDatas.get(orderBookDatas.size()-1).seq = Long.parseLong(each.getValue().toString());
 				else if(each.getValue() == null) {
-					orderBookDatas.add(new OrderBookData(each.getName(), new ArrayList<>(), new ArrayList<>(), false, 0));
+					orderBookDatas.add(new OrderBookData(each.getName()));
 				} else {
 					OrderBookData.Order order = new OrderBookData.Order(
 							Double.parseDouble(each.getName().toString()),
@@ -288,7 +288,7 @@ public class Poloniex {
 		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
 		 * @return Past trades for a given market, up to 50,000 trades in a range specified in UNIX timestamps
 		 */
-		public static void tradeHistory(long unixStartDate, long unixEndDate, String currencyPair) {
+		public static TradeData[] tradeHistory(long unixStartDate, long unixEndDate, String currencyPair) {
 
 			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnTradeHistory&currencyPair=" + currencyPair
 					+ "&start=" + unixStartDate + "&end=" + unixEndDate);
@@ -301,9 +301,34 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			evaluateExpression(response);
+			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
 
+			ArrayList<TradeData> tradeHistoryDatas = new ArrayList<>();
 
+			TradeData current = new TradeData();
+
+			for(CustomNameValuePair<String, CustomNameValuePair> each : a) {
+
+				if(each.getName().equals("globalTradeID"))
+					current.globalTradeID = Long.parseLong(each.getValue().toString());
+				else if(each.getName().equals("tradeID"))
+					current.tradeID = Long.parseLong(each.getValue().toString());
+				else if(each.getName().equals("date"))
+					current.date = each.getValue().toString();
+				else if(each.getName().equals("type"))
+					current.type = each.getValue().toString();
+				else if(each.getName().equals("rate"))
+					current.rate = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("amount"))
+					current.amount = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("total")) {
+					current.total = Double.parseDouble(each.getValue().toString());
+					tradeHistoryDatas.add(current);
+					current = new TradeData();
+				}
+			}
+
+			return tradeHistoryDatas.toArray(new TradeData[tradeHistoryDatas.size()]);
 
 		}
 
@@ -311,12 +336,13 @@ public class Poloniex {
 		 * @param unixStartDate Start date in UNIX timestamp
 		 * @param unixEndDate End date in UNIX timestamp
 		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 * @param period Candlestick period in seconds; valid values are 300, 900, 1800, 7200, 14400, and 86400
 		 * @return Candlestick chart data for the specified date range for the data returned in UNIX timestamps
 		 */
-		public static void chartData(long unixStartDate, long unixEndDate, String currencyPair) {
+		public static ChartData[] chartData(long unixStartDate, long unixEndDate, String currencyPair, int period) {
 
 			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnChartData&currencyPair=" + currencyPair
-					+ "&start=" + unixStartDate + "&end=" + unixEndDate);
+					+ "&start=" + unixStartDate + "&end=" + unixEndDate + "&period=" + period);
 			String response = null;
 
 			try {
@@ -326,7 +352,36 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			evaluateExpression(response);
+			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
+
+			ArrayList<ChartData> chartDatas = new ArrayList<>();
+
+			ChartData current = new ChartData();
+
+			for(CustomNameValuePair<String, CustomNameValuePair> each : a) {
+
+				if(each.getName().equals("date"))
+					current.date = Long.parseLong(each.getValue().toString());
+				else if(each.getName().equals("high"))
+					current.high = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("low"))
+					current.low = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("open"))
+					current.open = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("close"))
+					current.close = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("volume"))
+					current.volume = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("quoteVolume"))
+					current.quoteVolume = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("weightedAverage")) {
+					current.weightedAverage = Double.parseDouble(each.getValue().toString());
+					chartDatas.add(current);
+					current = new ChartData();
+				}
+			}
+
+			return chartDatas.toArray(new ChartData[chartDatas.size()]);
 
 		}
 
@@ -384,7 +439,7 @@ public class Poloniex {
 		 * @param currency Cryptocurrency name in symbol (e.g. BTC)
 		 * @return List of loan offers and demands for a given currency
 		 */
-		public static void loanOrders(String currency) {
+		public static LoanOrderData loanOrders(String currency) {
 
 			HttpGet get = new HttpGet(PUBLIC_URL + "?command=returnLoanOrders&currency=" + currency);
 			String response = null;
@@ -396,7 +451,38 @@ public class Poloniex {
 				e.printStackTrace();
 			}
 
-			evaluateExpression(response);
+			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
+
+			ArrayList<LoanOrderData.Order> offers = new ArrayList<>();
+			ArrayList<LoanOrderData.Order> demands = new ArrayList<>();
+
+			boolean offersDoneParsing = false;
+
+			LoanOrderData.Order current = new LoanOrderData.Order();
+
+			for(CustomNameValuePair<String, CustomNameValuePair> each : a) {
+
+				if(each.getName().equals("offers"))
+					offersDoneParsing = false;
+				else if(each.getName().equals("demands"))
+					offersDoneParsing = true;
+				else if(each.getName().equals("rate"))
+					current.rate = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("amount"))
+					current.amount = Double.parseDouble(each.getValue().toString());
+				else if(each.getName().equals("rangeMin"))
+					current.rangeMin = Integer.parseInt(each.getValue().toString());
+				else if(each.getName().equals("rangeMax")) {
+					current.rangeMax = Integer.parseInt(each.getValue().toString());
+					if(!offersDoneParsing)
+						offers.add(current);
+					else
+						demands.add(current);
+					current = new LoanOrderData.Order();
+				}
+			}
+
+			return new LoanOrderData(currency, offers, demands);
 
 		}
 
@@ -747,7 +833,7 @@ public class Poloniex {
 	 */
 	private static ArrayList<CustomNameValuePair<String, CustomNameValuePair>> evaluateExpression(String parse) {
 
-		//		System.out.println(parse);
+		System.out.println(parse);
 
 		/*
 		 * Cut into individual pieces
@@ -894,8 +980,7 @@ public class Poloniex {
 	public static void main(String[] args) {
 
 		/*
-		 * 9 public API methods
-		 * 6/9 complete
+		 * API methods
 		 */
 
 		//		System.out.println("                    ticker()");
@@ -919,21 +1004,41 @@ public class Poloniex {
 		//		}
 
 		//		System.out.println("                    tradeHistory()");
-		//		TradeData[] tradeDatas = Poloniex.Public.tradeHistory("BTC_ETH");
-		//		for(int j = 0; j < tradeDatas.length; j++) {
-		//			System.out.println(tradeDatas[j]);
+		//		TradeData[] tradeDatas_1 = Poloniex.Public.tradeHistory("BTC_ETH");
+		//		for(int j = 0; j < tradeDatas_1.length; j++) {
+		//			System.out.println(tradeDatas_1[j]);
 		//		}
 
-		//		TODO: Poloniex.Public.tradeHistory(long unixStartDate, long unixEndDate, String currencyPair);
+		//		System.out.println("                    tradeHistory()");
+		//		TradeData[] tradeDatas_2 = Poloniex.Public.tradeHistory(
+		//				Time.unixTimestamp(2017, 05, 18, 18, 00, "UTC-5:00"), // Start fetching trades from this point (May 18, 2017 6:00 PM)
+		//				Time.unixTimestamp(2017, 05, 18, 20, 30, "UTC-5:00"), // Up to this point (May 18, 2017 8:30 PM)
+		//				"BTC_ETH");
+		//		for(int j = 0; j < tradeDatas_2.length; j++) {
+		//			System.out.println(tradeDatas_2[j]);
+		//		}
 
-		//		TODO: Poloniex.Public.chartData(long unixStartDate, long unixEndDate, String currencyPair);
+		//		System.out.println("                    chartData()");
+		//		ChartData[] chartDatas = Poloniex.Public.chartData(
+		//				Time.unixTimestamp(2017, 05, 8, 1, 00, "UTC-5:00"), // May 8, 2017 1:00 AM
+		//				Time.unixTimestamp(2017, 05, 8, 20, 30, "UTC-5:00"), // May 8, 2017 8:30 PM
+		//				"BTC_ETH",
+		//				14400);
+		//		for(int j = 0; j < chartDatas.length; j++) {
+		//			System.out.println(chartDatas[j]);
+		//		}
 
+		//		System.out.println("                    currencies()");
 		//		CurrencyData[] currencyDatas = Poloniex.Public.currencies();
 		//		for(int j = 0; j < currencyDatas.length; j++) {
 		//			System.out.println(currencyDatas[j]);
 		//		}
 
-		//		TODO: Poloniex.Public.loanOrders("BTC");
+		//		System.out.println("                    loanOrders()");
+		//		LoanOrderData loanOrderData = Poloniex.Public.loanOrders("BTC");
+		//		System.out.println(loanOrderData);
+
+
 
 		/*
 		 * 31 trading API methods

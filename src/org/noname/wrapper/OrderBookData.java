@@ -10,6 +10,14 @@ public class OrderBookData {
 	public boolean isFrozen;
 	public long seq;
 
+	public OrderBookData(String currencyPair) {
+		this(currencyPair, new ArrayList<>(), new ArrayList<>(), false, 0);
+	}
+
+	public OrderBookData(String currencyPair, boolean isFrozen, long seq) {
+		this(currencyPair, new ArrayList<>(), new ArrayList<>(), isFrozen, seq);
+	}
+
 	public OrderBookData(String currencyPair, ArrayList<Order> asks, ArrayList<Order> bids, boolean isFrozen, long seq) {
 		this.currencyPair = currencyPair;
 		this.asks = asks;
@@ -23,6 +31,8 @@ public class OrderBookData {
 		public double price;
 		public double amount;
 
+		public Order() {}
+
 		public Order(double price, double amount) {
 			this.price = price;
 			this.amount = amount;
@@ -30,9 +40,7 @@ public class OrderBookData {
 
 		@Override
 		public String toString() {
-
 			return "[\"" + price + "\"," + amount + "]";
-
 		}
 
 	}
@@ -43,24 +51,33 @@ public class OrderBookData {
 		StringBuilder sb = new StringBuilder();
 
 		if(currencyPair != null)
-			sb.append("{\"" + currencyPair + "\":");
+			sb.append("{\"" + currencyPair + "\":\n");
 
 		sb.append("{\"asks\":[");
+		sb.append("\n");
 		for(Order askOrder : asks) {
 			sb.append(askOrder.toString());
-			sb.append(",");
+			sb.append("\n");
 		}
-		sb.append("\"bids\":[");
+		sb.append("]}");
+		sb.append("\n");
+
+		sb.append("{\"bids\":[");
+		sb.append("\n");
 		for(Order bidOrder : bids) {
 			sb.append(bidOrder.toString());
-			sb.append(",");
+			sb.append("\n");
 		}
+		sb.append("]}");
+		sb.append("\n");
 
-		sb.append("\"isFrozen\":" + isFrozen + ",");
-		sb.append("\"seq\":" + seq + "}");
+		sb.append("{\"isFrozen\":" + isFrozen + "}");
+		sb.append("\n");
+
+		sb.append("{\"seq\":" + seq + "}");
 
 		if(currencyPair != null)
-			sb.append("}");
+			sb.append("\n}");
 
 		return sb.toString();
 
