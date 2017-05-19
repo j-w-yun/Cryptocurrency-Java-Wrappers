@@ -44,7 +44,7 @@ public class Poloniex {
 	public static class Public {
 
 		/**
-		 * Returns the ticker for all markets
+		 * @return Ticker for all markets
 		 */
 		public static TickerData[] ticker() {
 
@@ -82,9 +82,9 @@ public class Poloniex {
 		}
 
 		/**
-		 * Returns the 24-hour volume for all markets, plus totals for primary currencies
+		 * @return 24-hour volume for all markets, plus totals for primary currencies
 		 */
-		public static VolumeData[] volume() {
+		public static VolumeData volume() {
 
 			HttpGet get = new HttpGet(PUBLIC_URL + "?command=return24hVolume");
 			String response = null;
@@ -97,25 +97,38 @@ public class Poloniex {
 			}
 
 			ArrayList<CustomNameValuePair<String, CustomNameValuePair>> a = evaluateExpression(response);
-			ArrayList<VolumeData> b = new ArrayList<>();
+
+			VolumeData volumeData = new VolumeData();
 
 			for(int j = 0; j < a.size(); j++) {
-				VolumeData volumeData = new VolumeData(
-						a.get(j++).getName(),
-						a.get(j++).getName(),
-						Double.parseDouble(a.get(j++).getValue().toString()),
-						a.get(j++).getName(),
-						Double.parseDouble(a.get(j++).getValue().toString()));
-				b.add(volumeData);
+
+				if(a.get(j).getName().equals("totalBTC") || a.get(j).getName().equals("totalETH") || a.get(j).getName().equals("totalUSDT") || a.get(j).getName().equals("totalXMR") || a.get(j).getName().equals("totalXUSD")) {
+
+					VolumeData.Total volumeTotalData = new VolumeData.Total(
+							a.get(j).getName(),
+							Double.parseDouble(a.get(j).getValue().toString()));
+					volumeData.totals.add(volumeTotalData);
+
+				} else {
+
+					VolumeData.Pair volumePairData = new VolumeData.Pair(
+							a.get(j++).getName(),
+							a.get(j++).getName(),
+							Double.parseDouble(a.get(j).getValue().toString()),
+							a.get(j).getName(),
+							Double.parseDouble(a.get(j).getValue().toString()));
+					volumeData.pairs.add(volumePairData);
+
+				}
 			}
 
-			return b.toArray(new VolumeData[b.size()]);
+			return volumeData;
 
 		}
 
 		/**
-		 * Returns the order book for a given market, as well as a sequence number for use with the Push API and an indicator specifying whether the market is frozen
 		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 * @return Order book for a given market, as well as a sequence number for use with the Push API and an indicator specifying whether the market is frozen
 		 */
 		public static OrderBookData orderBook(String currencyPair) {
 
@@ -165,7 +178,7 @@ public class Poloniex {
 		}
 
 		/**
-		 * Returns the order book for all markets, as well as a sequence number for use with the Push API and an indicator specifying whether the market is frozen
+		 * @return Order book for all markets, as well as a sequence number for use with the Push API and an indicator specifying whether the market is frozen
 		 */
 		public static OrderBookData[] orderBookAll() {
 
@@ -223,8 +236,8 @@ public class Poloniex {
 		}
 
 		/**
-		 * Returns the past 200 trades for a given market
 		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 * @return Past 200 trades for a given market
 		 */
 		public static TradeData[] tradeHistory(String currencyPair) {
 
@@ -270,10 +283,10 @@ public class Poloniex {
 		}
 
 		/**
-		 * Returns past trades for a given market, up to 50,000 trades in a range specified in UNIX timestamps
 		 * @param unixStartDate Start date in UNIX timestamp
 		 * @param unixEndDate End date in UNIX timestamp
 		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 * @return Past trades for a given market, up to 50,000 trades in a range specified in UNIX timestamps
 		 */
 		public static void tradeHistory(long unixStartDate, long unixEndDate, String currencyPair) {
 
@@ -295,10 +308,10 @@ public class Poloniex {
 		}
 
 		/**
-		 * Returns candlestick chart data for the specified date range for the data returned in UNIX timestamps
 		 * @param unixStartDate Start date in UNIX timestamp
 		 * @param unixEndDate End date in UNIX timestamp
 		 * @param currencyPair Pair of cryptocurrencies (e.g. BTC_ETH)
+		 * @return Candlestick chart data for the specified date range for the data returned in UNIX timestamps
 		 */
 		public static void chartData(long unixStartDate, long unixEndDate, String currencyPair) {
 
@@ -318,7 +331,7 @@ public class Poloniex {
 		}
 
 		/**
-		 * Returns information about currencies
+		 * @return Information on all currencies
 		 */
 		public static CurrencyData[] currencies() {
 
@@ -368,8 +381,8 @@ public class Poloniex {
 		}
 
 		/**
-		 * Returns the list of loan offers and demands for a given currency
 		 * @param currency Cryptocurrency name in symbol (e.g. BTC)
+		 * @return List of loan offers and demands for a given currency
 		 */
 		public static void loanOrders(String currency) {
 
@@ -850,10 +863,10 @@ public class Poloniex {
 
 		}
 
-		//		// DEBUG: display post-fix expression
-		//		for(CustomNameValuePair<String, CustomNameValuePair> each : stack) {
-		//			System.out.println(each);
-		//		}
+		// DEBUG: display post-fix expression
+		for(CustomNameValuePair<String, CustomNameValuePair> each : stack) {
+			System.out.println(each);
+		}
 
 		// Move stack to ArrayList
 		ArrayList<CustomNameValuePair<String, CustomNameValuePair>> toReturn = new ArrayList<>();
@@ -885,24 +898,27 @@ public class Poloniex {
 		 * 6/9 complete
 		 */
 
+		//		System.out.println("                    ticker()");
 		//		TickerData[] ticker = Poloniex.Public.ticker();
 		//		for(int j = 0; j < ticker.length; j++) {
 		//			System.out.println(ticker[j]);
 		//		}
 
-		//		VolumeData[] volume = Poloniex.Public.volume();
-		//		for(int j = 0; j < volume.length; j++) {
-		//			System.out.println(volume[j]);
-		//		}
+		//		System.out.println("                    volume()");
+		//		VolumeData volume = Poloniex.Public.volume();
+		//		System.out.println(volume);
 
+		//		System.out.println("                    orderBook()");
 		//		OrderBookData orderBookData = Poloniex.Public.orderBook("BTC_ETH");
 		//		System.out.println(orderBookData);
 
+		//		System.out.println("                    orderBookAll()");
 		//		OrderBookData[] orderBookDatas = Poloniex.Public.orderBookAll();
 		//		for(int j = 0; j < orderBookDatas.length; j++) {
 		//			System.out.println(orderBookDatas[j]);
 		//		}
 
+		//		System.out.println("                    tradeHistory()");
 		//		TradeData[] tradeDatas = Poloniex.Public.tradeHistory("BTC_ETH");
 		//		for(int j = 0; j < tradeDatas.length; j++) {
 		//			System.out.println(tradeDatas[j]);
@@ -912,10 +928,10 @@ public class Poloniex {
 
 		//		TODO: Poloniex.Public.chartData(long unixStartDate, long unixEndDate, String currencyPair);
 
-		CurrencyData[] currencyDatas = Poloniex.Public.currencies();
-		for(int j = 0; j < currencyDatas.length; j++) {
-			System.out.println(currencyDatas[j]);
-		}
+		//		CurrencyData[] currencyDatas = Poloniex.Public.currencies();
+		//		for(int j = 0; j < currencyDatas.length; j++) {
+		//			System.out.println(currencyDatas[j]);
+		//		}
 
 		//		TODO: Poloniex.Public.loanOrders("BTC");
 
