@@ -1,2 +1,3 @@
 # Poloniex-Java-Wrapper
-Wrapper for Poloniex public and trading API
+
+Java wrapper for Poloniex public and trading API
