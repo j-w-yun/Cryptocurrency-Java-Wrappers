@@ -1,3 +1,3 @@
-# Poloniex-Java-Wrapper
+# Java Wrapper for Cryptocurrency Data
 
-Java wrapper for Poloniex public and trading API
+Java wrapper for various cryptocurrency APIs
