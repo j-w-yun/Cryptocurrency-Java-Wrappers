@@ -17,7 +17,7 @@ __Poloniex API__ <https://poloniex.com/support/api> (work in progress)
 
 __Google Trends__ <https://trends.google.com/trends>
 
-# Planned APIs
+Planned APIs
 --------
 
 Reddit API <https://www.reddit.com/wiki/api>
