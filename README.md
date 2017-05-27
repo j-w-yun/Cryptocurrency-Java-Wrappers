@@ -1,6 +1,6 @@
 # Java Wrapper for Cryptocurrency Data
 
-Java wrapper for various cryptocurrency APIs
+Java wrapper for various APIs to aid analysis of cryptocurrencies
 
 <hr>
 
@@ -12,13 +12,23 @@ Poloniex public API <https://poloniex.com/support/api>
 
 Poloniex trading API <https://poloniex.com/support/api> (work in progress)
 
-Google trends <https://trends.google.com/trends> (work in progress)
+Google Trends <https://trends.google.com/trends>
+
+<hr>
+
+# Planned APIs:
+
+Reddit API <https://www.reddit.com/wiki/api>
+
+Blockchain API <https://blockchain.info/api>
+
+Add yours!
 
 <hr>
 
 # Dependencies
 
-Link Apache HTTP Client library to project
+Link Apache HTTP Client libraries to project (http://hc.apache.org/httpcomponents-client-ga/)
 
 <hr>
 

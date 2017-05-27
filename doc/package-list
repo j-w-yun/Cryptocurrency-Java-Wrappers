@@ -3,5 +3,7 @@ org.jaewanyun.wrapper.etherscan
 org.jaewanyun.wrapper.etherscan.data
 org.jaewanyun.wrapper.examples
 org.jaewanyun.wrapper.google_trends
+org.jaewanyun.wrapper.google_trends.data
 org.jaewanyun.wrapper.poloniex
 org.jaewanyun.wrapper.poloniex.data
+org.jaewanyun.wrapper.reddit

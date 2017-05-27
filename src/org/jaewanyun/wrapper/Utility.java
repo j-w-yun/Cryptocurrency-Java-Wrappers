@@ -139,12 +139,12 @@ public class Utility {
 	 */
 	public static ArrayList<CustomNameValuePair<String, CustomNameValuePair>> evaluateExpression(String parse) {
 
-		//		/*
-		//		 * TODO: Debug output
-		//		 */
-		//
-		//		System.out.println("Original JSON :" + parse);
-		//		System.out.println();
+		/*
+		 * TODO: Debug output
+		 */
+
+		System.out.println("Original JSON :" + parse);
+		System.out.println();
 
 		/*
 		 * Cut into individual pieces
@@ -274,16 +274,16 @@ public class Utility {
 		}
 
 
-		//		/*
-		//		 * TODO: Debug parsed output
-		//		 */
-		//
-		//		int counter = 0;
-		//		for(CustomNameValuePair<String, CustomNameValuePair> each : stack) {
-		//			System.out.println(padRight("#" + String.valueOf(counter), 10) + each);
-		//			counter++;
-		//		}
-		//		System.out.println();
+		/*
+		 * TODO: Debug parsed output
+		 */
+
+		int counter = 0;
+		for(CustomNameValuePair<String, CustomNameValuePair> each : stack) {
+			System.out.println(padRight("#" + String.valueOf(counter), 10) + each);
+			counter++;
+		}
+		System.out.println();
 
 
 		/*
