@@ -6,11 +6,16 @@ Java wrapper for various APIs to aid analysis of cryptocurrencies
 
 # Supported APIs:
 
+![Etherscan](https://etherscan.io/images/EtherscanLogo-transparent-b-small.png)
+
 Etherscan API <https://etherscan.io/apis>
 
-Poloniex public API <https://poloniex.com/support/api>
+![Poloniex](https://poloniex.com/images/theme_light/poloniex.png)
 
+Poloniex public API <https://poloniex.com/support/api>
 Poloniex trading API <https://poloniex.com/support/api> (work in progress)
+
+![GoogleTrends](https://ssl.gstatic.com/trends_tpt/70f9349528952eba4bbc320e6ace769338c3601a65b80c35761d890a18c14fe1.gif)
 
 Google Trends <https://trends.google.com/trends>
 
